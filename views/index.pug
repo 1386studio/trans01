@@ -1,5 +1,23 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  table#test.layui-hide
+block conflict-list
+  each v,i in conflicts
+    li.layui-nav-item
+      a(href='') 云市场
+block script
+  script.
+    layui.use('table', function(){
+    var table = layui.table;
+    table.render({
+      elem: '#test'
+      ,url:'/alerts'
+      ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+      ,cols: [[
+          {field:'_id', width:80, title: 'ID', sort: true}
+          ,{field:'title', width:80, title: '用户名'}
+        ]]
+      });
+    });
+
