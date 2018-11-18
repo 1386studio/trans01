@@ -3,8 +3,11 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var fileUpload = require('express-fileupload');
 
 var indexRouter = require('./routes/index');
+var alertsRouter = require('./routes/alerts');
+var uploadRouter = require('./routes/upload');
 var usersRouter = require('./routes/users');
 
 var app = express();
@@ -17,9 +20,12 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(fileUpload());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/conflicts', indexRouter);
+app.use('/alerts', alertsRouter);
+app.use('/upload', uploadRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
