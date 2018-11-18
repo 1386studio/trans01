@@ -7,18 +7,20 @@ html
     meta(name='viewport', content='width=device-width, initial-scale=1, maximum-scale=1')
     link(rel='stylesheet', href='/layui/css/layui.css', media='all')
   body.layui-layout-body
+    block layer
     .layui-layout.layui-layout-admin
       .layui-header
-        .layui-logo CRF编辑翻译
+        .layui-logo
+          strong GCT
         ul.layui-nav.layui-layout-left
+          li.layui-nav-item.layui-this
+            a(href='') 翻译
           li.layui-nav-item
-            a(href='') 功能
+            a(href='') 其他
           li.layui-nav-item
-            a(href='') 功能
+            a(href='') 其他
           li.layui-nav-item
-            a(href='') 功能
-          li.layui-nav-item
-            a(href='javascript:;') 其它功能
+            a(href='javascript:;') 其它
             dl.layui-nav-child
               dd
                 a(href='') 邮件管理
@@ -42,7 +44,7 @@ html
           ul.layui-nav.layui-nav-tree(lay-filter='test')
             block conflict-list
       .layui-body
-        div(style='padding: 6px 15px;')
+        div(style='padding: 15px;')
           block content
       .layui-footer
           | © 1386studio@gmail.com - caowei

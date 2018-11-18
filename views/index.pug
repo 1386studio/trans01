@@ -1,23 +1,44 @@
 extends layout
 
 block content
+  div(style="position:relative;line-height: 2rem;font-size: 1rem;")= selected.name
+    a#conflict-edit-btn.layui-btn.layui-btn-danger.layui-btn-sm(href="#", style="position:absolute;top:0;right:0") 编辑
   table#test.layui-hide
+block layer
+  form#conflict-editor.layui-form(action='', style="display:none")
+    .layui-form-item
+      .layui-input-block
+        button.layui-btn(lay-submit='', lay-filter='demo1') 立即提交
+        button.layui-btn.layui-btn-primary(type='reset') 重置
 block conflict-list
   each v,i in conflicts
-    li.layui-nav-item
-      a(href='') 云市场
+    li.layui-nav-item(class=(v._id == selected._id) ? "layui-this" : "")
+      a(href= `/${v._id}`)= v.name
 block script
   script.
     layui.use('table', function(){
-    var table = layui.table;
-    table.render({
-      elem: '#test'
-      ,url:'/alerts'
-      ,cellMinWidth: 80
-      ,cols: [[
-          {field:'_id', width:80, title: 'ID', sort: true}
-          ,{field:'title', width:80, title: '用户名'}
+      var table = layui.table;
+      table.render({
+        elem: '#test'
+        ,url:'/alerts'
+        ,cellMinWidth: 80
+        ,cols: [[
+            {field:'_id', width:80, title: 'ID', sort: true}
+            ,{field:'title', width:80, title: '用户名'}
         ]]
+      });
+    });
+    layui.use('layer', function(){
+      var $ = layui.jquery, layer = layui.layer;
+      $('#conflict-edit-btn').on('click', function(){
+        var index = layer.open({
+          type: 1,
+          content: $('#conflict-editor'),
+          area: ['320px', '195px'],
+          maxmin: true,
+          shade: 0
+        });
+        //- layer.full(index);
       });
     });
 
