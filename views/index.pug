@@ -4,23 +4,82 @@ block content
   div(style="position:relative;line-height: 2rem;font-size: 1rem;")
     span= selected.name
     span(style="position:absolute;top:0;right:0;line-height:0")
-      a#conflict-edit-btn.layui-btn.layui-btn-danger.layui-btn-sm(href="#") 编辑属性
-      a#conflict-edit-btn2.layui-btn.layui-btn-danger.layui-btn-sm(href="#") 编辑简介
-  table#test.layui-hide
+      a#conflict-edit-btn.layui-btn.layui-btn-normal.layui-btn-sm(href="#") 编辑属性
+      a#conflict-edit-btn2.layui-btn.layui-btn-normal.layui-btn-sm(href="#") 编辑简介
+      a#alert-add-btn.layui-btn.layui-btn-normal.layui-btn-sm(href="#") 新增新闻
+  table#test.layui-hide(lay-filter="demo")
 block layer
-  form#conflict-editor-prop.layui-form(action='', style="display:none")
+  form#alert-editor(style="display:none;padding:17px;")
     .layui-form-item
+      label.layui-form-label 新闻标题
       .layui-input-block
-        button.layui-btn(lay-submit='', lay-filter='demo1') 立即提交
-        button.layui-btn.layui-btn-primary(type='reset') 重置
+        input.layui-input(type='text', name='title', autocomplete='off', placeholder='请输入标题')
+    .layui-form-item
+      label.layui-form-label 日期
+      .layui-input-inline
+        input#date.layui-input(type='text', name='datetime', lay-verify='date', placeholder='yyyy-MM-dd HH:mm:ss', autocomplete='off')
+    .layui-form-item.layui-form-text
+      label.layui-form-label 内容
+      .layui-input-block
+        textarea#alert-content.layui-textarea(placeholder='请输入内容')
+  form#conflict-editor-prop.layui-form(action='', style="display:none;padding:17px;", lay-filter="test1")
+    .layui-form-item
+      label.layui-form-label 冲突名称
+      .layui-input-block
+        input.layui-input(type='text', name='name', autocomplete='off', placeholder='请输入标题', value= selected.name)
+    .layui-form-item
+      label.layui-form-label 相关地区
+      .layui-input-block
+        select(name='region')
+          each v,i in ['亚太','北美','日本']
+            option(selected=(v == selected.region ? true : false))= v
+    .layui-form-item
+      label.layui-form-label 对美国的影响
+      .layui-input-block
+        select(name='impact_to_us')
+          each v,i in ['至关重要','无关紧要','毫无关系']
+            option(selected=(v == selected.impact_to_us ? true : false))= v
+    .layui-form-item
+      label.layui-form-label 对中国的影响
+      .layui-input-block
+        select(name='impact_to_cn')
+          each v,i in ['至关重要','无关紧要','毫无关系']
+            option(selected=(v == selected.impact_to_cn ? true : false))= v
+    .layui-form-item
+      label.layui-form-label 进展状态
+      .layui-input-block
+        select(name='status')
+          each v,i in ['恶化','缓和','积极']
+            option(selected=(v == selected.status ? true : false))= v
+    .layui-form-item
+      label.layui-form-label 冲突类型
+      .layui-input-block
+        select(name='type')
+          each v,i in ['内战','局部战争','政变']
+            option(selected=(v == selected.type ? true : false))= v
+    .layui-form-item
+      label.layui-form-label 相关地图
+      .layui-input-block
+        input.layui-input(type='text', name='map_url', autocomplete='off', placeholder='请输入标题', value= selected.map_url)
   #conflict-editor-intro(style="display:none")
     #conflict-editor-intro-content
+  script#barDemo(type='text/html').
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+
 block conflict-list
   each v,i in conflicts
     li.layui-nav-item(class=(v._id == selected._id) ? "layui-this" : "")
       a(href= `/conflicts/${v._id}`)= v.name
 block script
   script.
+    layui.use('laydate', function(){
+      var laydate = layui.laydate;
+      laydate.render({
+        elem: '#date',
+        type: 'datetime'
+      });
+    });
     layui.use('table', function(){
       var table = layui.table;
       table.render({
@@ -28,9 +87,82 @@ block script
         ,url:'/alerts'
         ,cellMinWidth: 80
         ,cols: [[
-            {field:'_id', width:80, title: 'ID', sort: true}
-            ,{field:'title', width:80, title: '用户名'}
+            {field:'_id', width:200, title: 'ID'},
+            {field:'title', width:300, title: '标题'},
+            {field:'datetime', width:200, title: '日期'},
+            {field:'content', title: '内容'},
+            {fixed: 'right', width:120, align:'center', toolbar: '#barDemo', title: '操作'}
         ]]
+      });
+      table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+          layer.confirm('真的删除？', function(index){
+            obj.del();
+            layer.close(index);
+          });
+        } else if(obj.event === 'edit'){
+          var index = layer.open({
+            type: 1,
+            content: $('#alert-editor'),
+            area: ['50rem', '19rem'],
+            //- maxmin: true,
+            shade: 0,
+            success: function() {
+              $('input[name="title"]').val(data.title);
+              $('#date').val(data.datetime);
+              $('#alert-content').val(data.content)
+            },
+            cancel: function(){
+              var data2 = {
+                title: $('input[name="title"]').val(),
+                datetime: $('#date').val(),
+                content: $('#alert-content').val(),
+              };
+              $.ajax({
+                type : "PUT",
+                url : `/alerts/${data._id}`,
+                data : data2,
+                success : function(resp) {
+                  if(resp.success){
+                    obj.update(data2);
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+    $('#alert-add-btn').on('click', function(){
+      var index = layer.open({
+        type: 1,
+        content: $('#alert-editor'),
+        area: ['50rem', '19rem'],
+        //- maxmin: true,
+        shade: 0,
+        success: function() {
+          $('input[name="title"]').val(null);
+          $('#date').val(null);
+          $('#alert-content').val(null)
+        },
+        cancel: function(){
+          var data2 = {
+            title: $('input[name="title"]').val(),
+            datetime: $('#date').val(),
+            content: $('#alert-content').val(),
+          };
+          $.ajax({
+            type : "POST",
+            url : `/alerts`,
+            data : data2,
+            success : function(resp) {
+              if(resp.success){
+                location.reload();
+              }
+            }
+          });
+        }
       });
     });
     layui.use('layer', function(){
@@ -39,9 +171,30 @@ block script
         var index = layer.open({
           type: 1,
           content: $('#conflict-editor-prop'),
-          area: ['520px', '295px'],
+          area: ['50rem', '28rem'],
           //- maxmin: true,
-          shade: 0
+          shade: 0,
+          cancel: function(){
+            var data = {
+              name: $('input[name="name"]').val(),
+              region: $('select[name="region"]').find("option:selected").text(),
+              impact_to_us: $('select[name="impact_to_us"]').find("option:selected").text(),
+              impact_to_cn: $('select[name="impact_to_cn"]').find("option:selected").text(),
+              status: $('select[name="status"]').find("option:selected").text(),
+              type: $('select[name="type"]').find("option:selected").text(),
+              map_url: $('input[name="map_url"]').val(),
+            };
+            $.ajax({
+              type : "PUT",
+              url : '/conflicts/#{selected._id}',
+              data : data,
+              success : function(resp) {
+                if(resp.success){
+                  location.reload();
+                }
+              }
+            });
+          }
         });
         //- layer.full(index);
       });
@@ -51,7 +204,7 @@ block script
         var index = layer.open({
           type: 1,
           content: $('#conflict-editor-intro'),
-          area: ['520px', '395px'],
+          area: ['50rem', '395px'],
           //- maxmin: true,
           shade: 0,
           success: function() {
@@ -62,7 +215,7 @@ block script
               //- theme : "light",
               //- previewTheme : "light",
               //- editorTheme : "pastel-on-dark",
-              markdown : '#{selected.intro}',
+              markdown : '#{selected.intro.replace(/\n/g,"\\n")}',
               codeFold : true,
               //syncScrolling : false,
               saveHTMLToTextarea : true,    // 保存 HTML 到 Textarea
@@ -91,7 +244,10 @@ block script
             }); 
           },
           cancel: function(){
-            console.log(testEditor.getMarkdown());
+            var data = {intro: testEditor.getMarkdown()}
+            $.post('/conflicts/#{selected._id}', data, function(resp){
+              location.reload();
+            })
             testEditor.editor.remove();
           }
         });

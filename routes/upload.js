@@ -6,7 +6,6 @@ router.post('/', function(req, res, next) {
     return res.status(400).send('No files were uploaded.');
   }
   let sampleFile = req.files['editormd-image-file'];
-  console.log(sampleFile);
   var name = `${uuid.v4()}.${sampleFile.mimetype.split('/')[1]}`;
   sampleFile.mv(`${__dirname}/../public/upload/${name}`, function(err) {
     if (err)

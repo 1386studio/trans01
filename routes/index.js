@@ -15,4 +15,16 @@ router.get('/:id?', function(req, res, next) {
     }
   });
 });
+router.put('/:id?', function(req, res, next) {
+  mongoose.connect("mongodb://localhost/gct", function(err) {
+    if(!err){
+      conflicts.updateOne({_id: req.params.id}, req.body, function(err,docs){
+        res.json({
+            success : 1,
+            message : "..."
+        });
+      });
+    }
+  });
+});
 module.exports = router;

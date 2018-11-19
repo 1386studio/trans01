@@ -8,12 +8,40 @@ router.get('/', function(req, res, next) {
   mongoose.connect("mongodb://localhost/gct", function(err) {
     if(!err){
       alerts.find(function(err,docs){
-        res.send({
+        res.json({
           "code": 0,
           "msg": "",
           "data": docs
         });
       })
+    }
+  });
+});
+router.put('/:id?', function(req, res, next) {
+  mongoose.connect("mongodb://localhost/gct", function(err) {
+    if(!err){
+      alerts.updateOne({_id: req.params.id}, req.body, function(err,doc){
+        res.json({
+          success : 1,
+          message : "..."
+        });
+      });
+    } else {
+      console.log(err);
+    }
+  });
+});
+router.post('/:id?', function(req, res, next) {
+  mongoose.connect("mongodb://localhost/gct", function(err) {
+    if(!err){
+      alerts.create(req.body, function(err,docs){
+        res.json({
+          success : 1,
+          message : "..."
+        });
+      });
+    } else {
+      console.log(err);
     }
   });
 });
