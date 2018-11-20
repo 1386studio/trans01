@@ -10,7 +10,7 @@ router.get('/:id?', function(req, res, next) {
       conflicts.find({},null,{lean:true},function(err,docs){
         var index = req.params.id ? _.findIndex(docs, function(o) { return o._id == req.params.id; }) : 0;
         index = index >= 0 ? index : 0;
-        res.render('index', { title: 'Express', conflicts: docs, selected: docs[index]});
+        res.render('index', { title: 'GCT', conflicts: docs, selected: docs[index]});
       })
     }
   });
