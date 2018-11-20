@@ -235,7 +235,7 @@ block script
               //- theme : "light",
               //- previewTheme : "light",
               //- editorTheme : "pastel-on-dark",
-              markdown : '#{selected.intro.replace(/\n/g,"\\n")}',
+              markdown : '#{selected.intro.replace(/\n/g,"\\n").replace(/\'/g,"\\'")}',
               codeFold : true,
               //syncScrolling : false,
               saveHTMLToTextarea : true,    // 保存 HTML 到 Textarea
