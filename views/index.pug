@@ -2,7 +2,7 @@ extends layout
 
 block content
   div(style="position:relative;line-height: 2rem;font-size: 1rem;")
-    span= selected.name
+    span= selected.name + ' （' + selected.editor + '）'
     span(style="position:absolute;top:0;right:0;line-height:0")
       a#conflict-edit-btn.layui-btn.layui-btn-normal.layui-btn-sm(href="#") 编辑属性
       a#conflict-edit-btn2.layui-btn.layui-btn-normal.layui-btn-sm(href="#") 编辑简介
@@ -15,6 +15,10 @@ block layer
       .layui-input-block
         input.layui-input(type='text', name='title', autocomplete='off', placeholder='请输入标题')
     .layui-form-item
+      label.layui-form-label 来源
+      .layui-input-block
+        input.layui-input(type='text', name='source', autocomplete='off', placeholder='请输入来源')
+    .layui-form-item
       label.layui-form-label 日期
       .layui-input-inline
         input#date.layui-input(type='text', name='datetime', lay-verify='date', placeholder='yyyy-MM-dd HH:mm:ss', autocomplete='off')
@@ -26,7 +30,7 @@ block layer
     .layui-form-item
       label.layui-form-label 冲突名称
       .layui-input-block
-        input.layui-input(type='text', name='name', autocomplete='off', placeholder='请输入标题', value= selected.name)
+        input.layui-input(type='text', name='name', autocomplete='off', placeholder='请输入名称', value= selected.name)
     .layui-form-item
       label.layui-form-label 相关地区
       .layui-input-block
@@ -60,7 +64,7 @@ block layer
     .layui-form-item
       label.layui-form-label 相关地图
       .layui-input-block
-        input.layui-input(type='text', name='map_url', autocomplete='off', placeholder='请输入标题', value= selected.map_url)
+        input.layui-input(type='text', name='map_url', autocomplete='off', placeholder='请输入地图URL', value= selected.map_url)
   #conflict-editor-intro(style="display:none")
     #conflict-editor-intro-content
   script#barDemo(type='text/html').
@@ -73,23 +77,24 @@ block conflict-list
       a(href= `/conflicts/${v._id}`)= v.name
 block script
   script.
-    layui.use('laydate', function(){
+    layui.use(['laydate','table','layer'], function(){
+
       var laydate = layui.laydate;
       laydate.render({
         elem: '#date',
         type: 'datetime'
       });
-    });
-    layui.use('table', function(){
+
       var table = layui.table;
       table.render({
         elem: '#test'
-        ,url:'/alerts'
+        ,url: `/alerts/#{selected._id}`
         ,cellMinWidth: 80
         ,cols: [[
-            {field:'_id', width:200, title: 'ID'},
+            {field:'_id', width:150, title: 'ID'},
             {field:'title', width:300, title: '标题'},
-            {field:'datetime', width:200, title: '日期'},
+            {field:'datetime', width:150, title: '日期'},
+            {field:'source', width:150, title: '来源'},
             {field:'content', title: '内容'},
             {fixed: 'right', width:120, align:'center', toolbar: '#barDemo', title: '操作'}
         ]]
@@ -98,24 +103,33 @@ block script
         var data = obj.data;
         if(obj.event === 'del'){
           layer.confirm('真的删除？', function(index){
-            obj.del();
-            layer.close(index);
+            $.ajax({
+              type : "DELETE",
+              url : `/alerts/${data._id}`,
+              success : function(resp) {
+                if(resp.success){
+                  obj.del();
+                  layer.close(index);
+                }
+              }
+            });
           });
         } else if(obj.event === 'edit'){
           var index = layer.open({
             type: 1,
             content: $('#alert-editor'),
-            area: ['50rem', '19rem'],
+            area: ['50rem', '22rem'],
             //- maxmin: true,
-            shade: 0,
             success: function() {
               $('input[name="title"]').val(data.title);
+              $('input[name="source"]').val(data.source);
               $('#date').val(data.datetime);
               $('#alert-content').val(data.content)
             },
             cancel: function(){
               var data2 = {
                 title: $('input[name="title"]').val(),
+                source: $('input[name="source"]').val(),
                 datetime: $('#date').val(),
                 content: $('#alert-content').val(),
               };
@@ -133,39 +147,44 @@ block script
           });
         }
       });
-    });
-    $('#alert-add-btn').on('click', function(){
-      var index = layer.open({
-        type: 1,
-        content: $('#alert-editor'),
-        area: ['50rem', '19rem'],
-        //- maxmin: true,
-        shade: 0,
-        success: function() {
-          $('input[name="title"]').val(null);
-          $('#date').val(null);
-          $('#alert-content').val(null)
-        },
-        cancel: function(){
-          var data2 = {
-            title: $('input[name="title"]').val(),
-            datetime: $('#date').val(),
-            content: $('#alert-content').val(),
-          };
-          $.ajax({
-            type : "POST",
-            url : `/alerts`,
-            data : data2,
-            success : function(resp) {
-              if(resp.success){
-                location.reload();
-              }
+      $('#alert-add-btn').on('click', function(){
+        var index = layer.open({
+          type: 1,
+          content: $('#alert-editor'),
+          area: ['50rem', '19rem'],
+          //- maxmin: true,
+          success: function() {
+            $('input[name="title"]').val(null);
+            $('#date').val(null);
+            $('#alert-content').val(null)
+          },
+          cancel: function(){
+            var data2 = {
+              title: $('input[name="title"]').val(),
+              source: $('input[name="source"]').val(),
+              datetime: $('#date').val(),
+              content: $('#alert-content').val(),
+              conflict: '#{selected._id}'
+            };
+            if(data2.title){
+              var loading = layer.load(1, {
+                shade: [0.2,'#000'] //0.1透明度的白色背景
+              });
+              $.ajax({
+                type : "POST",
+                url : `/alerts`,
+                data : data2,
+                success : function(resp) {
+                  if(resp.success){
+                    table.reload('test');
+                    layer.close(loading)
+                  }
+                }
+              });
             }
-          });
-        }
+          }
+        });
       });
-    });
-    layui.use('layer', function(){
       var layer = layui.layer;
       $('#conflict-edit-btn').on('click', function(){
         var index = layer.open({
@@ -173,8 +192,10 @@ block script
           content: $('#conflict-editor-prop'),
           area: ['50rem', '28rem'],
           //- maxmin: true,
-          shade: 0,
           cancel: function(){
+            var loading = layer.load(1, {
+              shade: [0.2,'#000'] //0.1透明度的白色背景
+            });
             var data = {
               name: $('input[name="name"]').val(),
               region: $('select[name="region"]').find("option:selected").text(),
@@ -206,7 +227,6 @@ block script
           content: $('#conflict-editor-intro'),
           area: ['50rem', '395px'],
           //- maxmin: true,
-          shade: 0,
           success: function() {
             testEditor = editormd("test-editormd", {
               width: "100%",
@@ -244,11 +264,24 @@ block script
             }); 
           },
           cancel: function(){
+            var loading = layer.load(1, {
+              shade: [0.2,'#000'] //0.1透明度的白色背景
+            });
             var data = {intro: testEditor.getMarkdown()}
             $.post('/conflicts/#{selected._id}', data, function(resp){
               location.reload();
             })
-            testEditor.editor.remove();
+            $.ajax({
+              type : "PUT",
+              url : '/conflicts/#{selected._id}',
+              data : data,
+              success : function(resp) {
+                if(resp.success){
+                  testEditor.editor.remove();
+                  location.reload();
+                }
+              }
+            });
           }
         });
         layer.full(index);

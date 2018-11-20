@@ -12,6 +12,7 @@ var conflictSchema = new Schema({
     type: String,
     intro: String,
     map_url: String,
-    albulm: Array
+    albulm: Array,
+    editor: String
   });
 module.exports = mongoose.model('conflicts', conflictSchema);
