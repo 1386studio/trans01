@@ -8,6 +8,7 @@ block content
       a#conflict-edit-btn2.layui-btn.layui-btn-normal.layui-btn-sm(href="#") 编辑简介
       a#alert-add-btn.layui-btn.layui-btn-danger.layui-btn-sm(href="#") 新增新闻
   table#test.layui-hide(lay-filter="demo")
+  textarea#md-source(style="display:none")= selected.intro
 block layer
   form#alert-editor(style="display:none;padding:17px;")
     .layui-form-item
@@ -228,7 +229,6 @@ block script
           area: ['50rem', '395px'],
           //- maxmin: true,
           success: function() {
-            var md = `!{selected.intro.replace(/\`/g,'\\`')}`;
             testEditor = editormd("test-editormd", {
               width: "100%",
               height: 740,
@@ -236,7 +236,7 @@ block script
               //- theme : "light",
               //- previewTheme : "light",
               //- editorTheme : "pastel-on-dark",
-              markdown : md,
+              markdown : $('#md-source').val(),
               codeFold : true,
               //syncScrolling : false,
               saveHTMLToTextarea : true,    // 保存 HTML 到 Textarea
